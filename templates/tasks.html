@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/static/tasks.css">
+</head>
+
+<body class="bg-gray-50 min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header section -->
+        <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+            <h2 class="text-2xl font-semibold text-gray-800">Welcome to your task list</h2>
+            <a href="/logout"
+                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition font-medium text-sm">Logout</a>
+        </header>
+
+        <!-- Floating button to open the modal -->
+        <button id="openCreateModalButton"
+            class="fixed bottom-6 right-6 p-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg focus:outline-none">
+            <span class="text-2xl">+</span>
+        </button>
+
+        <!-- Modal para ver tarea completa -->
+        <div id="viewTaskModal" class="modal flex" style="display: none;">
+            <div class="modal-content">
+                <h3 id="modalTaskTitle" class="text-lg font-semibold mb-4">Task Title</h3>
+        
+                <!-- Contenedor de la descripción con overflow específico para el modal -->
+                <p id="modalTaskDescription" class="text-gray-700 modal-description">
+                    Task description will appear here.
+                </p>
+        
+                <button id="closeViewModalButton" class="mt-4 w-full py-2 bg-gray-300 text-gray-700 rounded-lg">
+                    Close
+                </button>
+            </div>
+        </div>
+
+
+
+        <!-- Modal for creating a task -->
+        <div id="createModal" class="modal flex" style="display: none;">
+            <div class="modal-content">
+                <h3 class="text-lg font-semibold mb-4">Create Task</h3>
+                <form id="taskForm">
+                    <div class="space-y-4">
+                        <div>
+                            <input type="text" id="createTaskTitle" placeholder="Task Title"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                required>
+                        </div>
+                        <div>
+                            <input type="text" id="createTaskDescription" placeholder="Task Description"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                required>
+                        </div>
+                        <button type="submit"
+                            class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition">Create
+                            Task</button>
+                    </div>
+                </form>
+                <button id="closeCreateModalButton"
+                    class="mt-4 w-full py-2 bg-gray-300 text-gray-700 rounded-lg">Close</button>
+            </div>
+        </div>
+
+        <!-- Modal for task update -->
+        <div id="updateModal" class="modal flex" style="display: none;">
+            <div class="modal-content">
+                <h3 class="text-lg font-semibold mb-4">Update Task</h3>
+                <form id="updateTaskForm">
+                    <div class="space-y-4">
+                        <div>
+                            <input type="text" id="updateTaskTitle" placeholder="Task Title"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                required>
+                        </div>
+                        <div>
+                            <input type="text" id="updateTaskDescription" placeholder="Task Description"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                required>
+                        </div>
+                        <button type="submit"
+                            class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition">Update
+                            Task</button>
+                    </div>
+                </form>
+                <button id="closeUpdateModalButton"
+                    class="mt-4 w-full py-2 bg-gray-300 text-gray-700 rounded-lg">Close</button>
+            </div>
+        </div>
+
+        <!-- Congratulations Modal -->
+        <div id="congratsModal" class="modal flex" style="display: none;">
+            <div class="modal-content bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold mb-4">Congratulations!</h3>
+                <p>You have completed the task.</p>
+                <button id="congratsCloseButton"
+                    class="mt-4 w-full py-2 bg-green-600 text-white rounded-lg">Accept</button>
+            </div>
+        </div>
+
+        <!-- Task list container -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Your Tasks</h3>
+            <ul id="taskList" class="space-y-4">
+                <!-- Tasks will be dynamically inserted here -->
+            </ul>
+            <div class="text-gray-500 text-center py-8" id="emptyMessage">
+                Your tasks will appear here.
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/tasks.js"></script>
+</body>
+
+</html>

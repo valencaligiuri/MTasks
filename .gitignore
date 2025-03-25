@@ -10,3 +10,4 @@
 # Archivos temporales de IDEs (si usas VS Code, Goland, etc.)
 .vscode/
 .idea/
+/tasks.json
