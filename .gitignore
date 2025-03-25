@@ -1,0 +1,12 @@
+# Carpeta de caché de dependencias (se puede regenerar)
+/go.sum
+
+# Binarios compilados
+*.exe
+*.out
+*.o
+*.a
+
+# Archivos temporales de IDEs (si usas VS Code, Goland, etc.)
+.vscode/
+.idea/
