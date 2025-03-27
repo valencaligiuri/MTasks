@@ -221,6 +221,15 @@ func updateTask(c *gin.Context) {
 		if t.Title == updatedTask.Title && t.ID != taskID {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "A task with that title already exists"})
 			return
+		} else if updatedTask.Title == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be empty"})
+			return
+		} else if updatedTask.Description == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be empty"})
+			return
+		} else if len(updatedTask.Title) > 50 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be longer than 50 characters"})
+			return
 		}
 	}
 
