@@ -432,3 +432,6 @@ body {
   height: 100%;
 }
 
+.congrats {
+  height: fit-content;
+}
