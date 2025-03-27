@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -49,36 +49,7 @@ func isAuthenticated(c *gin.Context) bool {
 	return authenticated != nil && authenticated.(bool) && savedSessionID == sessionID
 }
 
-func loadTasks(dbPath string) ([]Task, error) {
-	// Verificar si el archivo de la base de datos existe
-	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-		// Si no existe, se crea la base de datos y la tabla
-		fmt.Println("No tasks file found, creating a new one")
-		db, err := sql.Open("sqlite", dbPath)
-		if err != nil {
-			return nil, err
-		}
-		defer db.Close()
-
-		// Crear la tabla "tasks" si no existe
-		createTableSQL := `CREATE TABLE IF NOT EXISTS tasks (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			title TEXT NOT NULL UNIQUE,
-			description TEXT NOT NULL,	
-			completed BOOLEAN NOT NULL
-		);`
-		if _, err := db.Exec(createTableSQL); err != nil {
-			return nil, err
-		}
-	}
-
-	// Abrir la base de datos existente
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
+func loadTasks(db *sql.DB) ([]Task, error) {
 	// Consultar las tareas
 	rows, err := db.Query("SELECT id, title, description, completed FROM tasks")
 	if err != nil {
@@ -99,14 +70,7 @@ func loadTasks(dbPath string) ([]Task, error) {
 	}
 	return tasks, nil
 }
-func saveTasks(tasks []Task) error {
-	// Abrir la base de datos SQLite
-	db, err := sql.Open("sqlite", "./tasks.db")
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
+func saveTasks(db *sql.DB, tasks []Task) error {
 	// Comenzar una transacción
 	tx, err := db.Begin()
 	if err != nil {
@@ -181,33 +145,14 @@ func logout(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/login")
 }
 
-func getTasks(c *gin.Context) {
+func getTasks(db *sql.DB, c *gin.Context) {
 	if !isAuthenticated(c) {
 		c.Redirect(http.StatusFound, "/login")
 		return
 	}
-	// Abrir (o crear) la base de datos SQLite
-	db, err := sql.Open("sqlite", "./tasks.db")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer db.Close()
-
-	// Crear la tabla "tasks" si no existe
-	createTableSQL := `CREATE TABLE IF NOT EXISTS tasks (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	title TEXT,
-	description TEXT,
-	completed BOOLEAN
-	);`
-	if _, err := db.Exec(createTableSQL); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
 
 	// Obtener las tareas desde la base de datos
-	tasks, err := loadTasks("./tasks.db")
+	tasks, err := loadTasks(db)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -220,7 +165,7 @@ func getTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, tasks)
 }
 
-func createTask(c *gin.Context) {
+func createTask(db *sql.DB, c *gin.Context) {
 	if !isAuthenticated(c) {
 		c.Redirect(http.StatusFound, "/login")
 		return
@@ -234,7 +179,7 @@ func createTask(c *gin.Context) {
 	}
 
 	// Cargar las tareas existentes desde la base de datos
-	tasks, err := loadTasks("./tasks.db")
+	tasks, err := loadTasks(db)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -275,7 +220,7 @@ func createTask(c *gin.Context) {
 	tasks = append(tasks, newTask)
 
 	// Guardar las tareas actualizadas
-	if err := saveTasks(tasks); err != nil {
+	if err := saveTasks(db, tasks); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -285,7 +230,7 @@ func createTask(c *gin.Context) {
 }
 
 // Actualiza una tarea por ID
-func updateTask(c *gin.Context) {
+func updateTask(db *sql.DB, c *gin.Context) {
 	if !isAuthenticated(c) {
 		c.Redirect(http.StatusFound, "/login")
 		return
@@ -304,7 +249,7 @@ func updateTask(c *gin.Context) {
 		return
 	}
 
-	tasks, err := loadTasks("./tasks.db")
+	tasks, err := loadTasks(db)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -346,7 +291,7 @@ func updateTask(c *gin.Context) {
 		return
 	}
 
-	if err := saveTasks(tasks); err != nil {
+	if err := saveTasks(db, tasks); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -354,7 +299,7 @@ func updateTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task updated"})
 }
 
-func deleteTask(c *gin.Context) {
+func deleteTask(db *sql.DB, c *gin.Context) {
 	if !isAuthenticated(c) {
 		c.Redirect(http.StatusFound, "/login")
 		return
@@ -369,7 +314,7 @@ func deleteTask(c *gin.Context) {
 	}
 
 	// Cargar las tareas desde la base de datos
-	tasks, err := loadTasks("./tasks.db")
+	tasks, err := loadTasks(db)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load tasks"})
 		return
@@ -391,14 +336,6 @@ func deleteTask(c *gin.Context) {
 		return
 	}
 
-	// Reabrir la base de datos y eliminar la tarea
-	db, err := sql.Open("sqlite", "./tasks.db")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to the database"})
-		return
-	}
-	defer db.Close()
-
 	// Eliminar la tarea de la base de datos
 	_, err = db.Exec("DELETE FROM tasks WHERE id = ?", taskID)
 	if err != nil {
@@ -419,6 +356,28 @@ func tasksPage(c *gin.Context) {
 }
 
 func main() {
+
+	var err error
+	db, err := sql.Open("sqlite", "./tasks.db")
+	if err != nil {
+		log.Fatal("Can't open database", err)
+	} else if err := db.Ping(); err != nil {
+		log.Fatal("Can't connect to database", err)
+	}
+
+	// Crear la tabla "tasks" si no existe
+	createTableSQL := `CREATE TABLE IF NOT EXISTS tasks (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		title TEXT,
+		description TEXT,
+		completed BOOLEAN
+		);`
+	if _, err := db.Exec(createTableSQL); err != nil {
+		log.Fatal("Can't create table", err)
+	}
+
+	defer db.Close()
+
 	fmt.Print("Enter a password to start the server: ")
 	fmt.Scanln(&serverPassword)
 
@@ -437,10 +396,18 @@ func main() {
 	r.GET("/logout", logout)
 
 	r.GET("/tasks", tasksPage)
-	r.GET("/api/tasks", getTasks)
-	r.POST("/api/tasks", createTask)
-	r.PUT("/api/tasks/:id", updateTask)
-	r.DELETE("/api/tasks/:id", deleteTask)
+	r.GET("/api/tasks", func(ctx *gin.Context) {
+		getTasks(db, ctx)
+	})
+	r.POST("/api/tasks", func(ctx *gin.Context) {
+		createTask(db, ctx)
+	})
+	r.PUT("/api/tasks/:id", func(ctx *gin.Context) {
+		updateTask(db, ctx)
+	})
+	r.DELETE("/api/tasks/:id", func(ctx *gin.Context) {
+		deleteTask(db, ctx)
+	})
 
 	r.Static("/static", "./static")
 
