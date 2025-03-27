@@ -1,5 +1,6 @@
-# Carpeta de caché de dependencias (se puede regenerar)
+# Dependencias y caché
 /go.sum
+/node_modules
 
 # Binarios compilados
 *.exe
@@ -7,7 +8,29 @@
 *.o
 *.a
 
-# Archivos temporales de IDEs (si usas VS Code, Goland, etc.)
+# Archivos temporales de IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Archivos de bases de datos locales
 /tasks.db
+
+# Archivos de configuración específicos del sistema
+*.env
+*.local
+
+# Logs y archivos temporales
+*.log
+/tmp/
+.DS_Store
+
+# Archivos de construcción
+/dist/
+/build/
+/coverage/
+
+# Ignorar archivos generados por herramientas específicas
+*.lock
+*.bak
