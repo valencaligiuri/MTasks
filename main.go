@@ -114,18 +114,29 @@ func saveTasks(tasks []Task) error {
 	}
 	defer tx.Rollback()
 
-	// Eliminar todas las tareas antes de guardar las nuevas
-	_, err = tx.Exec("DELETE FROM tasks")
-	if err != nil {
-		return err
-	}
-
-	// Insertar las tareas en la base de datos
+	// Insertar o actualizar las tareas en la base de datos
 	for _, task := range tasks {
-		_, err := tx.Exec("INSERT INTO tasks (id, title, description, completed) VALUES (?, ?, ?, ?)",
-			task.ID, task.Title, task.Description, task.Completed)
+		// Verificar si la tarea ya existe
+		var exists bool
+		err := tx.QueryRow("SELECT EXISTS(SELECT 1 FROM tasks WHERE id = ?)", task.ID).Scan(&exists)
 		if err != nil {
 			return err
+		}
+
+		if exists {
+			// Si la tarea existe, actualizarla
+			_, err = tx.Exec("UPDATE tasks SET title = ?, description = ?, completed = ? WHERE id = ?",
+				task.Title, task.Description, task.Completed, task.ID)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Si la tarea no existe, insertarla
+			_, err = tx.Exec("INSERT INTO tasks (id, title, description, completed) VALUES (?, ?, ?, ?)",
+				task.ID, task.Title, task.Description, task.Completed)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
