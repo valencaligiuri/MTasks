@@ -154,7 +154,7 @@ function displayTasks(tasks) {
 // Crear tarea
 
 function createTask(title, description) {
-  const newTask = { title, description, completed: false };
+  const newTask = { title, description };
 
   fetch("/api/tasks", {
     method: "POST",
@@ -166,7 +166,7 @@ function createTask(title, description) {
     .then((response) => response.json())
     .then(() => {
       document.getElementById("createModal").style.display = "none"; // Cerrar el modal
-      getTasks(); // Recargar las tareas
+      getTasks(); // Recargar las tareas  
     })
     .catch((error) => console.error("Error al crear tarea:", error));
 }
