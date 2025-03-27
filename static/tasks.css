@@ -4,10 +4,22 @@
 :root {
   --primary-color: #4caf50;
   --primary-hover: #388e3c;
+  --bg-light: #1a1a1a;
+  --bg-white: #333;
+  --border-color: #444;
+  --text-muted: #bbb;
+  --shadow-light: rgba(255, 255, 255, 0.1);
+  --shadow-medium: rgba(255, 255, 255, 0.3);
+  --transition-speed: 0.3s;
+}
+
+html.dark {
+  --primary-color: #65f06a;
+  --primary-hover: #388e3c;
   --bg-light: #f9fafb;
   --bg-white: #ffffff;
   --border-color: #e5e7eb;
-  --text-muted: #6b7280;
+  --text-muted: #9dacc7;
   --shadow-light: rgba(0, 0, 0, 0.05);
   --shadow-medium: rgba(0, 0, 0, 0.1);
   --transition-speed: 0.3s;
@@ -109,22 +121,31 @@ body {
   overflow: hidden;
   transform: scale(0.95);
   transition: transform var(--transition-speed) ease;
+  height: 70%;
 }
 .modal.active .modal-content {
   transform: scale(1);
 }
 
-#createTaskTitle, #updateTaskTitle, #viewTaskTitle, .taskTitle{
+#createTaskTitle,
+#updateTaskTitle,
+#viewTaskTitle,
+.taskTitle {
   font-weight: bold;
   display: block;
 }
 
-.createTaskTitle::first-letter, .updateTaskTitle::first-letter, #viewTaskTitle::first-letter, .taskTitle::first-letter{
+.createTaskTitle::first-letter,
+.updateTaskTitle::first-letter,
+#viewTaskTitle::first-letter,
+.taskTitle::first-letter {
   text-transform: uppercase;
 }
 
 .modal-content h3 {
-  padding: 1.25rem;
+  padding: .4em;
+  max-width: 100%;
+  overflow-wrap: break-word;
   border-bottom: 1px solid var(--border-color);
   margin: 0;
   font-size: 1.25rem;
@@ -166,7 +187,7 @@ body {
 
 .taskItem > div:first-child > button:first-child {
   position: absolute;
-  top: 0.5rem;
+  top: 0.53rem;
   left: 0.5rem;
   z-index: 1;
 }
@@ -224,17 +245,18 @@ body {
    CUSTOM CHECKBOX STYLES
 ============================================== */
 .completedCheckbox {
+  position: absolute;
+  left: .45em;
+  bottom: 0.5em;
   -webkit-appearance: none;
   appearance: none;
   width: 1.5rem;
   height: 1.5rem;
-  border: 2px solid #4ade80;
+  border: 2px solid var(--primary-color);
   border-radius: 0.375rem;
-  margin-right: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  position: relative;
 }
 
 .completedCheckbox::after {
@@ -246,10 +268,10 @@ body {
   height: 0.75rem;
   border: solid gray; /* Color gris cuando no está marcado */
   border-width: 0 0.15rem 0.15rem 0;
-  transform: rotate(45deg);
+  transform: rotate(45deg); /* Centra el checkmark */
 }
 
-.dark\:mark-white::after{
+.dark\:mark-white::after {
   border-color: rgb(120, 120, 148);
 }
 
@@ -283,7 +305,7 @@ body {
 ============================================== */
 
 /* General para móviles */
-@media (max-width: 640px) {
+@media (max-width: 800px) {
   body {
     padding: 1rem;
   }
@@ -294,9 +316,6 @@ body {
   .taskItem {
     flex-direction: column;
     align-items: flex-start;
-  }
-  .taskItem > div:first-child .taskContent{
-    margin-left: 0.5rem;
   }
   /* Se apunta al contenedor de acciones: es el último hijo de .taskItem */
   .taskItem > :last-child {
@@ -309,16 +328,28 @@ body {
     flex: 1 1 auto;
     min-width: 20%;
     font-size: 1rem;
-    padding: .6rem;
-    margin: .5rem;
+    padding: 0.6rem;
+    margin: 0.5rem;
   }
   /* Ajuste de tamaños de fuente para título */
-  .taskTitle{
+
+  .taskInfo{
+    max-width: 100%;
+    margin: 0 !important;
+  }
+
+  .taskTitle {
     font-size: 1.5rem;
   }
 
+  .completedCheckbox {
+    top: 0.5em;
+    right: 0.4em;
+    left: unset;
+  }
+
   .taskContent {
-    margin-bottom: 0.75rem;
+    margin: 0 !important;
   }
   /* Ocultar la descripción para mostrar únicamente el título y los botones */
   .taskDescription {
@@ -371,3 +402,33 @@ body {
     padding: 2rem;
   }
 }
+
+#viewTaskTitle {
+  max-height: 100%;
+}
+
+#viewTaskDescription {
+  max-width: 100%;
+  max-height: 100%;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+}
+
+#updateTaskForm, #taskForm{
+  height: 100%;
+}
+
+#updateTaskForm > div, #taskForm > div{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.updateTaskDescription, .createTaskDescription {
+  height: 70%;
+}
+
+#updateTaskDescription, #createTaskDescription{
+  height: 100%;
+}
+

@@ -168,6 +168,9 @@ func createTask(c *gin.Context) {
 		} else if len(newTask.Title) > 50 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be longer than 50 characters"})
 			return
+		} else if len(newTask.Description) > 300 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be longer than 300 characters"})
+			return
 		}
 	}
 
@@ -229,6 +232,9 @@ func updateTask(c *gin.Context) {
 			return
 		} else if len(updatedTask.Title) > 50 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be longer than 50 characters"})
+			return
+		} else if len(updatedTask.Description) > 300 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be longer than 300 characters"})
 			return
 		}
 	}

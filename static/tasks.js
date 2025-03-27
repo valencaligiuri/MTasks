@@ -37,14 +37,15 @@ function displayTasks(tasks) {
 
     // Agregar clases según el tema actual
     if (currentTheme === "dark") {
-      taskItem.classList.add("bg-gray-800", "text-white");
+      taskItem.classList.add("bg-gray-700", "text-white");
+      console.log("adding dark theme");
     } else {
       taskItem.classList.add("bg-gray-100", "text-gray-900");
     }
 
     // Contenedor para el icono de ojo y el contenido de la tarea
     const taskInfo = document.createElement("div");
-    taskInfo.classList.add("flex", "items-center", "mr-4"); // Flex para alinear el ojo y el contenido
+    taskInfo.classList.add("flex", "items-center", "mr-4", "taskInfo"); // Flex para alinear el ojo y el contenido
 
     // Botón de ver tarea completa (icono de ojo)
     const viewButton = document.createElement("button");
@@ -74,6 +75,10 @@ function displayTasks(tasks) {
     const taskDescription = document.createElement("div");
     taskDescription.classList.add("taskDescription");
     taskDescription.textContent = task.description; // Asignar solo la descripción
+    const completedCheckbox = document.createElement("input");
+    completedCheckbox.type = "checkbox";
+    completedCheckbox.checked = task.completed;
+    completedCheckbox.classList.add("completedCheckbox", "dark:mark-white");
 
     // Añadir el título y la descripción a taskContent
     taskContent.appendChild(taskTitle);
@@ -81,6 +86,7 @@ function displayTasks(tasks) {
 
     // Colocar el icono de ojo y el contenido de la tarea en taskInfo
     taskInfo.appendChild(viewButton); // El botón del ojo a la izquierda
+    taskInfo.appendChild(completedCheckbox);
     taskInfo.appendChild(taskContent); // El contenido de la tarea (título + descripción)
 
     // Colocar el taskInfo (ojo + contenido) en taskItem
@@ -97,8 +103,8 @@ function displayTasks(tasks) {
       "ml-4",
       "bg-blue-600",
       "text-white",
-      "py-1",
-      "px-3",
+      "py-2",
+      "px-4",
       "rounded-lg",
       "hover:bg-blue-700"
     );
@@ -113,22 +119,17 @@ function displayTasks(tasks) {
       "ml-4",
       "bg-red-600",
       "text-white",
-      "py-1",
-      "px-3",
+      "py-2",
+      "px-4",
       "rounded-lg",
       "hover:bg-red-700"
     );
     deleteButton.onclick = function () {
       deleteTask(task.id);
     };
-    
-    // Checkbox para marcar como completada
-    const completedCheckbox = document.createElement("input");
-    completedCheckbox.type = "checkbox";
-    completedCheckbox.checked = task.completed;
-    completedCheckbox.classList.add("completedCheckbox", "dark:mark-white", "ml-6"); // Agregar margen a la izquierda para separarlo
-    
 
+    // Checkbox para marcar como completada
+    // Agregar margen a la izquierda para separarlo
 
     completedCheckbox.addEventListener("change", function () {
       if (this.checked) {
@@ -142,7 +143,6 @@ function displayTasks(tasks) {
     // Colocar los botones de Update, Delete y el checkbox en buttonContainer
     buttonContainer.appendChild(updateButton);
     buttonContainer.appendChild(deleteButton);
-    buttonContainer.appendChild(completedCheckbox); // El checkbox a la derecha
 
     // Colocar el buttonContainer (botones) en el taskItem
     taskItem.appendChild(buttonContainer);
@@ -205,14 +205,15 @@ function openUpdateModal(task) {
     fetch("/api/tasks")
       .then((response) => response.json())
       .then((data) => {
-        const maxLength = 50;
-        if (updatedTitle.length > maxLength) {
+        if (updatedTitle.length > 50) {
           alert("The title must not exceed 50 characters!");
+        } else if (updatedDescription.length > 300) {
+          alert("The description must not exceed 300 characters!");
         } else {
           const existingTask = data.find(
             (task) => task.title.toLowerCase() === updatedTitle.toLowerCase()
           );
-          if (existingTask) {
+          if (existingTask && updatedTitle !== task.title) {
             alert("A task with this title already exists!");
           } else {
             // Si no existe y el título es válido, crear la tarea
@@ -319,6 +320,8 @@ document
         const maxLength = 50;
         if (title.length > maxLength) {
           alert("The title must not exceed 50 characters!");
+        } else if (description.length > 300) {
+          alert("The description must not exceed 300 characters!");
         } else {
           const existingTask = data.find(
             (task) => task.title.toLowerCase() === title.toLowerCase()

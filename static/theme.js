@@ -43,11 +43,11 @@ function toggleTheme() {
   
     taskItems.forEach((taskItem) => {
       // Limpiar las clases de fondo y texto previas
-      taskItem.classList.remove("bg-gray-100", "text-gray-900", "bg-gray-800", "text-white");
+      taskItem.classList.remove("bg-gray-100", "text-gray-900", "bg-gray-700", "text-white");
   
       // Aplicar nuevas clases según el tema
       if (theme === "dark") {
-        taskItem.classList.add("bg-gray-800", "text-white");
+        taskItem.classList.add("bg-gray-700", "text-white");
       } else {
         taskItem.classList.add("bg-gray-100", "text-gray-900");
       }

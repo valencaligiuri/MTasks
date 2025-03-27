@@ -18,7 +18,6 @@
   </head>
 
   <body class="bg-gray-50 min-h-screen p-6 dark:bg-gray-900 dark:text-white">
-    
     <div class="max-w-4xl mx-auto">
       <!-- Header section -->
       <header
@@ -90,18 +89,18 @@
                   type="text"
                   id="createTaskTitle"
                   placeholder="Task Title"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
                 />
               </div>
-              <div>
-                <input
+              <div class="createTaskDescription"> 
+                <textarea
                   type="text"
                   id="createTaskDescription"
                   placeholder="Task Description"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
-                />
+                ></textarea>
               </div>
               <button
                 type="submit"
@@ -127,24 +126,24 @@
             Update Task
           </h3>
           <form id="updateTaskForm">
-            <div class="space-y-4">
+            <div class="space-y-4 udp">
               <div class="updateTaskTitle">
                 <input
                   type="text"
                   id="updateTaskTitle"
                   placeholder="Task Title"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
                 />
               </div>
-              <div>
-                <input
+              <div class="updateTaskDescription">
+                <textarea
                   type="text"
                   id="updateTaskDescription"
                   placeholder="Task Description"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
-                />
+                ></textarea>  
               </div>
               <button
                 type="submit"
@@ -166,7 +165,7 @@
       <!-- Congratulations Modal -->
       <div id="congratsModal" class="modal flex" style="display: none">
         <div
-          class="modal-content bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg"
+          class="modal-content bg-white dark:bg-gray-800 p-6 rounded-md shadow-lg"
         >
           <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
             Congratulations!
@@ -185,9 +184,12 @@
 
       <!-- Task list container -->
       <div
-        class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 dark:bg-gray-800 dark:border-gray-700"
+        class="bg-white rounded-md shadow-sm border border-gray-100 p-6 dark:bg-gray-800 dark:border-gray-700"
       >
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 dark:text-white">
+        <h3
+          class="text-lg font-semibold text-gray-800 mb-4 dark:text-white"
+          style="width: 100%; border-bottom: 1px solid var(--border-color)"
+        >
           Your Tasks
         </h3>
         <ul id="taskList" class="space-y-4">
