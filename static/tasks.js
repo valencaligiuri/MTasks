@@ -21,18 +21,26 @@ function displayTasks(tasks) {
     emptyMessage.style.display = "none";
   }
 
+  const currentTheme = localStorage.getItem("theme") || "light";
+
   tasks.forEach((task) => {
     const taskItem = document.createElement("li");
     taskItem.classList.add(
       "taskItem",
       "p-4",
-      "bg-gray-100",
       "rounded-lg",
       "shadow-sm",
       "flex",
       "justify-between",
       "items-center"
     );
+
+    // Agregar clases según el tema actual
+    if (currentTheme === "dark") {
+      taskItem.classList.add("bg-gray-800", "text-white");
+    } else {
+      taskItem.classList.add("bg-gray-100", "text-gray-900");
+    }
 
     // Contenedor para el icono de ojo y el contenido de la tarea
     const taskInfo = document.createElement("div");
@@ -55,16 +63,16 @@ function displayTasks(tasks) {
 
     // Contenedor para el contenido de la tarea (título y descripción)
     const taskContent = document.createElement("div");
-    taskContent.classList.add("flex-grow", "task-content");
+    taskContent.classList.add("flex-grow", "taskContent");
 
     // Crear el título de la tarea
     const taskTitle = document.createElement("div");
-    taskTitle.classList.add("task-title");
+    taskTitle.classList.add("taskTitle");
     taskTitle.textContent = task.title; // Asignar solo el título
 
     // Crear la descripción de la tarea
     const taskDescription = document.createElement("div");
-    taskDescription.classList.add("task-description");
+    taskDescription.classList.add("taskDescription");
     taskDescription.textContent = task.description; // Asignar solo la descripción
 
     // Añadir el título y la descripción a taskContent
@@ -247,8 +255,8 @@ document
 function openViewTaskModal(task) {
   // Obtener los elementos del modal
   const modal = document.getElementById("viewTaskModal");
-  const modalTitle = document.getElementById("modalTaskTitle");
-  const modalDescription = document.getElementById("modalTaskDescription");
+  const modalTitle = document.getElementById("viewTaskTitle");
+  const modalDescription = document.getElementById("viewTaskDescription");
 
   // Asignar los valores de la tarea al modal
   modalTitle.textContent = task.title;
@@ -311,3 +319,4 @@ function createTask(title, description) {
     })
     .catch((error) => console.error("Error al crear tarea:", error));
 }
+

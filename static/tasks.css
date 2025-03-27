@@ -114,6 +114,15 @@ body {
   transform: scale(1);
 }
 
+#createTaskTitle, #updateTaskTitle, #viewTaskTitle, .taskTitle{
+  font-weight: bold;
+  display: block;
+}
+
+.createTaskTitle::first-letter, .updateTaskTitle::first-letter, #viewTaskTitle::first-letter, .taskTitle::first-letter{
+  text-transform: uppercase;
+}
+
 .modal-content h3 {
   padding: 1.25rem;
   border-bottom: 1px solid var(--border-color);
@@ -163,7 +172,7 @@ body {
 }
 
 /* Asegurar que el contenido de la tarea no se sobreponga con el botón de "ver" */
-.taskItem > div:first-child .task-content {
+.taskItem > div:first-child .taskContent {
   margin-left: 3rem; /* Espacio suficiente para que el ícono no interfiera */
 }
 
@@ -178,21 +187,21 @@ body {
 }
 
 /* Contenido interno de la tarea */
-.task-content {
+.taskContent {
   flex: 1;
   overflow: hidden;
   margin-left: 0.5rem;
 }
 
-.task-title {
-  font-weight: 500;
+.taskTitle {
+  font-weight: bold;
   margin-bottom: 0.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.task-description {
+.taskDescription {
   color: var(--text-muted);
   font-size: 0.875rem;
   white-space: nowrap;
@@ -227,11 +236,23 @@ body {
   flex-shrink: 0;
   position: relative;
 }
+
+.completedCheckbox::before {
+  content: "✔";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem;
+  color: gray;
+}
+
 .completedCheckbox:checked {
   background-color: #4ade80;
   border-color: #4ade80;
   animation: checkmark 0.2s ease-in-out;
 }
+
 .completedCheckbox:checked::after {
   content: "";
   position: absolute;
@@ -262,31 +283,39 @@ body {
   }
   .modal-content {
     width: 90%;
-    max-width: 90%;
     padding: 1rem;
   }
   .taskItem {
     flex-direction: column;
     align-items: flex-start;
   }
+  .taskItem > div:first-child .taskContent{
+    margin-left: 0.5rem;
+  }
   /* Se apunta al contenedor de acciones: es el último hijo de .taskItem */
   .taskItem > :last-child {
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.5rem;
     margin-top: 0.5rem;
     width: 100%;
   }
-  /* Ajuste de tamaños de fuente para título y descripción */
-  .task-title,
-  .task-description {
-    font-size: 0.875rem;
+  .taskItem > :last-child > * {
+    flex: 1 1 auto;
+    min-width: 20%;
+    font-size: 1rem;
+    padding: .6rem;
+    margin: .5rem;
   }
-  .task-content {
+  /* Ajuste de tamaños de fuente para título */
+  .taskTitle{
+    font-size: 1.5rem;
+  }
+
+  .taskContent {
     margin-bottom: 0.75rem;
   }
   /* Ocultar la descripción para mostrar únicamente el título y los botones */
-  .task-description {
+  .taskDescription {
     display: none;
   }
 }
@@ -298,7 +327,7 @@ body {
     align-items: stretch;
     padding: 0.75rem;
   }
-  .task-content {
+  .taskContent {
     margin-left: 0;
     margin-bottom: 0.5rem;
   }
@@ -310,11 +339,11 @@ body {
     margin-top: 0.5rem;
   }
   /* Ajuste para botones e íconos dentro del contenedor de acciones */
-  .taskItem > :last-child button,
-  .taskItem > :last-child input {
+  .taskItem > :last-child > * {
     flex: 1 1 auto;
-    min-width: 40px;
+    min-width: 100%;
     font-size: 1rem;
+    margin: 0;
   }
 }
 
@@ -322,6 +351,7 @@ body {
 @media (min-width: 641px) and (max-width: 1024px) {
   .modal-content {
     padding: 1.5rem;
+    width: 100%;
   }
   .taskItem {
     padding: 1rem;
