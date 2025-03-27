@@ -237,14 +237,20 @@ body {
   position: relative;
 }
 
-.completedCheckbox::before {
+.completedCheckbox::after {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1rem;
-  color: gray;
+  left: 0.375rem;
+  top: 0.1875rem;
+  width: 0.5rem;
+  height: 0.75rem;
+  border: solid gray; /* Color gris cuando no está marcado */
+  border-width: 0 0.15rem 0.15rem 0;
+  transform: rotate(45deg);
+}
+
+.dark\:mark-white::after{
+  border-color: rgb(120, 120, 148);
 }
 
 .completedCheckbox:checked {

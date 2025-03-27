@@ -121,13 +121,16 @@ function displayTasks(tasks) {
     deleteButton.onclick = function () {
       deleteTask(task.id);
     };
-
+    
     // Checkbox para marcar como completada
-    const completeCheckbox = document.createElement("input");
-    completeCheckbox.type = "checkbox";
-    completeCheckbox.checked = task.completed;
-    completeCheckbox.classList.add("completedCheckbox", "ml-6"); // Agregar margen a la izquierda para separarlo
-    completeCheckbox.addEventListener("change", function () {
+    const completedCheckbox = document.createElement("input");
+    completedCheckbox.type = "checkbox";
+    completedCheckbox.checked = task.completed;
+    completedCheckbox.classList.add("completedCheckbox", "dark:mark-white", "ml-6"); // Agregar margen a la izquierda para separarlo
+    
+
+
+    completedCheckbox.addEventListener("change", function () {
       if (this.checked) {
         // Guardar el ID de la tarea para eliminarla tras la felicitación
         taskToDelete = task.id;
@@ -139,7 +142,7 @@ function displayTasks(tasks) {
     // Colocar los botones de Update, Delete y el checkbox en buttonContainer
     buttonContainer.appendChild(updateButton);
     buttonContainer.appendChild(deleteButton);
-    buttonContainer.appendChild(completeCheckbox); // El checkbox a la derecha
+    buttonContainer.appendChild(completedCheckbox); // El checkbox a la derecha
 
     // Colocar el buttonContainer (botones) en el taskItem
     taskItem.appendChild(buttonContainer);
@@ -242,18 +245,18 @@ function updateTask(id, title, description) {
 }
 
 function openViewTaskModal(task) {
-    // Obtener los elementos del modal
-    const modal = document.getElementById("viewTaskModal");
-    const modalTitle = document.getElementById("viewTaskTitle");
-    const modalDescription = document.getElementById("viewTaskDescription");
-  
-    // Asignar los valores de la tarea al modal
-    modalTitle.textContent = task.title;
-    modalDescription.textContent = task.description;
-  
-    // Mostrar el modal
-    modal.style.display = "flex";
-  }
+  // Obtener los elementos del modal
+  const modal = document.getElementById("viewTaskModal");
+  const modalTitle = document.getElementById("viewTaskTitle");
+  const modalDescription = document.getElementById("viewTaskDescription");
+
+  // Asignar los valores de la tarea al modal
+  modalTitle.textContent = task.title;
+  modalDescription.textContent = task.description;
+
+  // Mostrar el modal
+  modal.style.display = "flex";
+}
 
 document
   .getElementById("closeUpdateModalButton")
@@ -290,7 +293,6 @@ document
   .addEventListener("click", function () {
     document.getElementById("createModal").style.display = "none";
   });
-
 
 // Función para cerrar el modal
 document
