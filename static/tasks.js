@@ -149,6 +149,26 @@ function displayTasks(tasks) {
   });
 }
 
+// Crear tarea
+
+function createTask(title, description) {
+  const newTask = { title, description, completed: false };
+
+  fetch("/api/tasks", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newTask),
+  })
+    .then((response) => response.json())
+    .then(() => {
+      document.getElementById("createModal").style.display = "none"; // Cerrar el modal
+      getTasks(); // Recargar las tareas
+    })
+    .catch((error) => console.error("Error al crear tarea:", error));
+}
+
 // Función para eliminar tarea
 function deleteTask(id) {
   fetch(`/api/tasks/${id}`, {
@@ -181,16 +201,21 @@ function openUpdateModal(task) {
     // Evitar tareas con el mismo título
     fetch("/api/tasks")
       .then((response) => response.json())
-      .then((tasks) => {
-        const existingTask = tasks.find(
-          (t) =>
-            t.title.toLowerCase() === updatedTitle.toLowerCase() &&
-            t.id !== task.id
-        );
-        if (existingTask) {
-          alert("A task with this title already exists!");
+      .then((data) => {
+        const maxLength = 50;
+        if (updatedTitle.length > maxLength) {
+          alert("The title must not exceed 50 characters!");
         } else {
-          updateTask(task.id, updatedTitle, updatedDescription);
+          const existingTask = data.find(
+            (task) => task.title.toLowerCase() === updatedTitle.toLowerCase()
+          );
+          if (existingTask) {
+            alert("A task with this title already exists!");
+          } else {
+            // Si no existe y el título es válido, crear la tarea
+            updateTask(task.id, updatedTitle, updatedDescription);
+            document.getElementById("updateModal").style.display = "none"; // Cerrar el modal de actual
+          }
         }
       })
       .catch((error) => console.error("Error al verificar tareas:", error));
@@ -215,6 +240,21 @@ function updateTask(id, title, description) {
     })
     .catch((error) => console.error("Error al actualizar tarea:", error));
 }
+
+function openViewTaskModal(task) {
+    // Obtener los elementos del modal
+    const modal = document.getElementById("viewTaskModal");
+    const modalTitle = document.getElementById("viewTaskTitle");
+    const modalDescription = document.getElementById("viewTaskDescription");
+  
+    // Asignar los valores de la tarea al modal
+    modalTitle.textContent = task.title;
+    modalDescription.textContent = task.description;
+  
+    // Mostrar el modal
+    modal.style.display = "flex";
+  }
+
 document
   .getElementById("closeUpdateModalButton")
   .addEventListener("click", function () {
@@ -251,20 +291,6 @@ document
     document.getElementById("createModal").style.display = "none";
   });
 
-// Función para abrir el modal de ver tarea completa
-function openViewTaskModal(task) {
-  // Obtener los elementos del modal
-  const modal = document.getElementById("viewTaskModal");
-  const modalTitle = document.getElementById("viewTaskTitle");
-  const modalDescription = document.getElementById("viewTaskDescription");
-
-  // Asignar los valores de la tarea al modal
-  modalTitle.textContent = task.title;
-  modalDescription.textContent = task.description;
-
-  // Mostrar el modal
-  modal.style.display = "flex";
-}
 
 // Función para cerrar el modal
 document
@@ -288,35 +314,20 @@ document
     fetch("/api/tasks")
       .then((response) => response.json())
       .then((data) => {
-        const existingTask = data.find(
-          (task) => task.title.toLowerCase() === title.toLowerCase()
-        );
-        if (existingTask) {
-          alert("A task with this title already exists!");
+        const maxLength = 50;
+        if (title.length > maxLength) {
+          alert("The title must not exceed 50 characters!");
         } else {
-          // Si no existe, crear la tarea
-          createTask(title, description);
+          const existingTask = data.find(
+            (task) => task.title.toLowerCase() === title.toLowerCase()
+          );
+          if (existingTask) {
+            alert("A task with this title already exists!");
+          } else {
+            // Si no existe y el título es válido, crear la tarea
+            createTask(title, description);
+          }
         }
       })
       .catch((error) => console.error("Error al verificar tareas:", error));
   });
-
-// Crear tarea
-function createTask(title, description) {
-  const newTask = { title, description, completed: false };
-
-  fetch("/api/tasks", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(newTask),
-  })
-    .then((response) => response.json())
-    .then(() => {
-      document.getElementById("createModal").style.display = "none"; // Cerrar el modal
-      getTasks(); // Recargar las tareas
-    })
-    .catch((error) => console.error("Error al crear tarea:", error));
-}
-

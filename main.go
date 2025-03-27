@@ -158,6 +158,16 @@ func createTask(c *gin.Context) {
 		if t.Title == newTask.Title {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "A task with that title already exists"})
 			return
+		} else if newTask.Title == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be empty"})
+			return
+
+		} else if newTask.Description == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be empty"})
+			return
+		} else if len(newTask.Title) > 50 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be longer than 50 characters"})
+			return
 		}
 	}
 
