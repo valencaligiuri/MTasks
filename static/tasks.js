@@ -38,7 +38,6 @@ function displayTasks(tasks) {
     // Agregar clases según el tema actual
     if (currentTheme === "dark") {
       taskItem.classList.add("bg-gray-700", "text-white");
-      console.log("adding dark theme");
     } else {
       taskItem.classList.add("bg-gray-100", "text-gray-900");
     }

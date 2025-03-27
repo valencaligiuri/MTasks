@@ -176,6 +176,31 @@ body {
   background-color: #e5e7eb;
 }
 
+
+#taskList {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-left: 1rem; /* Añade un margen a la izquierda para separarlo del contenido */
+}
+
+#taskList::-webkit-scrollbar {
+  width: 8px;
+}
+
+#taskList::-webkit-scrollbar-track {
+  background: var(--bg-light);
+  border-radius: 10px;
+}
+
+#taskList::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+}
+
+#taskList::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
 /* ==============================================
    TASK ITEM STYLES (AJUSTADOS A LA ESTRUCTURA DEL JS)
 ============================================== */

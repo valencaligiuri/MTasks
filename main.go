@@ -1,8 +1,8 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -13,9 +13,9 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	_ "modernc.org/sqlite"
 )
 
-var tasksFile = "tasks.json"
 var serverPassword string
 var sessionID string // Identificador global de sesión
 
@@ -49,40 +49,92 @@ func isAuthenticated(c *gin.Context) bool {
 	return authenticated != nil && authenticated.(bool) && savedSessionID == sessionID
 }
 
-func loadTasks() ([]Task, error) {
-	var tasks []Task
-	file, err := os.ReadFile(tasksFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Si el archivo no existe, crearlo
-			_, err := os.Create(tasksFile) // Crear el archivo vacío
-			if err != nil {
-				return nil, err
-			}
-			return tasks, nil // Retornar lista vacía
+func loadTasks(dbPath string) ([]Task, error) {
+	// Verificar si el archivo de la base de datos existe
+	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
+		// Si no existe, se crea la base de datos y la tabla
+		fmt.Println("No tasks file found, creating a new one")
+		db, err := sql.Open("sqlite", dbPath)
+		if err != nil {
+			return nil, err
 		}
+		defer db.Close()
+
+		// Crear la tabla "tasks" si no existe
+		createTableSQL := `CREATE TABLE IF NOT EXISTS tasks (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			title TEXT NOT NULL UNIQUE,
+			description TEXT NOT NULL,	
+			completed BOOLEAN NOT NULL
+		);`
+		if _, err := db.Exec(createTableSQL); err != nil {
+			return nil, err
+		}
+	}
+
+	// Abrir la base de datos existente
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
 		return nil, err
 	}
+	defer db.Close()
 
-	// Si el archivo está vacío, retorna una lista vacía
-	if len(file) == 0 {
-		return tasks, nil
-	}
-
-	err = json.Unmarshal(file, &tasks)
+	// Consultar las tareas
+	rows, err := db.Query("SELECT id, title, description, completed FROM tasks")
 	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []Task
+	for rows.Next() {
+		var task Task
+		if err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Completed); err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return tasks, nil
 }
-
 func saveTasks(tasks []Task) error {
-	file, err := json.MarshalIndent(tasks, "", "  ")
+	// Abrir la base de datos SQLite
+	db, err := sql.Open("sqlite", "./tasks.db")
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Comenzar una transacción
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Eliminar todas las tareas antes de guardar las nuevas
+	_, err = tx.Exec("DELETE FROM tasks")
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(tasksFile, file, 0644)
+	// Insertar las tareas en la base de datos
+	for _, task := range tasks {
+		_, err := tx.Exec("INSERT INTO tasks (id, title, description, completed) VALUES (?, ?, ?, ?)",
+			task.ID, task.Title, task.Description, task.Completed)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Confirmar la transacción
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func homePage(c *gin.Context) {
@@ -123,12 +175,34 @@ func getTasks(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/login")
 		return
 	}
-	tasks, err := loadTasks()
+	// Abrir (o crear) la base de datos SQLite
+	db, err := sql.Open("sqlite", "./tasks.db")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// Si no hay tareas, simplemente devolver una lista vacía
+	defer db.Close()
+
+	// Crear la tabla "tasks" si no existe
+	createTableSQL := `CREATE TABLE IF NOT EXISTS tasks (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	title TEXT,
+	description TEXT,
+	completed BOOLEAN
+	);`
+	if _, err := db.Exec(createTableSQL); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Obtener las tareas desde la base de datos
+	tasks, err := loadTasks("./tasks.db")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Si no hay tareas, devolver una lista vacía
 	if tasks == nil {
 		tasks = []Task{}
 	}
@@ -142,34 +216,38 @@ func createTask(c *gin.Context) {
 	}
 
 	var newTask Task
+	// Intentar enlazar el JSON recibido con la estructura Task
 	if err := c.ShouldBindJSON(&newTask); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	tasks, err := loadTasks()
+	// Cargar las tareas existentes desde la base de datos
+	tasks, err := loadTasks("./tasks.db")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Validar que no exista una tarea con el mismo título
+	if newTask.Title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be empty"})
+		return
+	} else if newTask.Description == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be empty"})
+		return
+	} else if len(newTask.Title) > 50 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be longer than 50 characters"})
+		return
+	} else if len(newTask.Description) > 300 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be longer than 300 characters"})
+		return
+	}
+
+	// Verificar si ya existe una tarea con el mismo título
 	for _, t := range tasks {
 		if t.Title == newTask.Title {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "A task with that title already exists"})
-			return
-		} else if newTask.Title == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be empty"})
-			return
-
-		} else if newTask.Description == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be empty"})
-			return
-		} else if len(newTask.Title) > 50 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be longer than 50 characters"})
-			return
-		} else if len(newTask.Description) > 300 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "The description cannot be longer than 300 characters"})
 			return
 		}
 	}
@@ -185,11 +263,13 @@ func createTask(c *gin.Context) {
 	newTask.Completed = false
 	tasks = append(tasks, newTask)
 
+	// Guardar las tareas actualizadas
 	if err := saveTasks(tasks); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Responder con un mensaje de éxito
 	c.JSON(http.StatusCreated, gin.H{"message": "Task created"})
 }
 
@@ -213,7 +293,7 @@ func updateTask(c *gin.Context) {
 		return
 	}
 
-	tasks, err := loadTasks()
+	tasks, err := loadTasks("./tasks.db")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -269,12 +349,7 @@ func deleteTask(c *gin.Context) {
 		return
 	}
 
-	tasks, err := loadTasks()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
+	// Obtener el ID de la tarea desde la URL
 	id := c.Param("id")
 	taskID, err := strconv.Atoi(id)
 	if err != nil {
@@ -282,9 +357,18 @@ func deleteTask(c *gin.Context) {
 		return
 	}
 
-	found := false
-	for i, task := range tasks {
-		if task.ID == taskID {
+	// Cargar las tareas desde la base de datos
+	tasks, err := loadTasks("./tasks.db")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load tasks"})
+		return
+	}
+
+	// Buscar la tarea por ID y eliminarla de la lista
+	var found bool
+	for i, t := range tasks {
+		if t.ID == taskID {
+			// Eliminar la tarea de la lista
 			tasks = append(tasks[:i], tasks[i+1:]...)
 			found = true
 			break
@@ -296,11 +380,22 @@ func deleteTask(c *gin.Context) {
 		return
 	}
 
-	if err := saveTasks(tasks); err != nil {
+	// Reabrir la base de datos y eliminar la tarea
+	db, err := sql.Open("sqlite", "./tasks.db")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to the database"})
+		return
+	}
+	defer db.Close()
+
+	// Eliminar la tarea de la base de datos
+	_, err = db.Exec("DELETE FROM tasks WHERE id = ?", taskID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Enviar una respuesta de éxito
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
 }
 

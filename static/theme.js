@@ -34,7 +34,6 @@ function toggleTheme() {
   
     // Guardar el nuevo tema en localStorage
     localStorage.setItem('theme', newTheme);
-    console.log(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} tema activado`);
   }
 
   function updateTaskItemsTheme(theme) {
