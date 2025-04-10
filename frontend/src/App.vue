@@ -1,33 +1,15 @@
 <template>
-  <div :class="{'dark': isDarkMode}">
-    <router-view @toggleDarkMode="checkTheme"/>
-  </div>
+  <img alt="Vue logo" src="./assets/logo.png">
+  <HelloWorld msg="Welcome to Your Vue.js App"/>
 </template>
 
 <script>
+import HelloWorld from './components/HelloWorld.vue'
+
 export default {
-  data() {
-    return {
-      isDarkMode: false,
-    }
-  },
-  mounted() {
-    this.checkTheme()
-  },
-  watch: {
-    $route() {
-      this.checkTheme()
-    }
-  },
-  methods: {
-    checkTheme() {
-      const savedTheme = localStorage.getItem("darkMode");
-      if (savedTheme) {
-        this.isDarkMode = savedTheme === 'true';
-      } else {
-        this.isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      }
-    }
+  name: 'App',
+  components: {
+    HelloWorld
   }
 }
 </script>
@@ -39,7 +21,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-
+  margin-top: 60px;
 }
-
 </style>
