@@ -25,6 +25,7 @@
 *.log
 /tmp/
 .DS_Store
+.node-version
 
 # Archivos de construcción
 /dist/
