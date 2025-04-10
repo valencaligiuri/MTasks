@@ -3,9 +3,10 @@ module github.com/valencaligiuri/MTasks
 go 1.24.1
 
 require (
+	github.com/gin-contrib/cors v1.7.4
 	github.com/gin-contrib/sessions v1.0.2
 	github.com/gin-gonic/gin v1.10.0
-	github.com/mattn/go-sqlite3 v1.14.24
+	modernc.org/sqlite v1.36.2
 )
 
 require (
@@ -25,6 +26,7 @@ require (
 	github.com/gorilla/sessions v1.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -45,5 +47,4 @@ require (
 	modernc.org/libc v1.61.13 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.8.2 // indirect
-	modernc.org/sqlite v1.36.2 // indirect
 )

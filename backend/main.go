@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-contrib/cors"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -34,7 +36,7 @@ func generateSessionID() string {
 	randomBytes := make([]byte, 16)
 	_, err := r.Read(randomBytes)
 	if err != nil {
-		panic(err) // Manejar el error adecuadamente
+		panic(err)
 	}
 
 	// Convertir los bytes aleatorios a una representación hexadecimal
@@ -46,7 +48,10 @@ func isAuthenticated(c *gin.Context) bool {
 	authenticated := session.Get("authenticated")
 	savedSessionID := session.Get("session_id")
 
-	return authenticated != nil && authenticated.(bool) && savedSessionID == sessionID
+	if authenticated != nil && authenticated.(bool) && savedSessionID == sessionID {
+		return true
+	}
+	return false
 }
 
 func loadTasks(db *sql.DB) ([]Task, error) {
@@ -112,29 +117,27 @@ func saveTasks(db *sql.DB, tasks []Task) error {
 	return nil
 }
 
-func homePage(c *gin.Context) {
-	if isAuthenticated(c) {
-		c.Redirect(http.StatusFound, "/tasks")
-	} else {
-		c.Redirect(http.StatusFound, "/login")
-	}
-}
-
-func loginPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.html", nil)
-}
-
 func loginPost(c *gin.Context) {
-	password := c.PostForm("password")
+	var loginData struct {
+		Password string `json:"password"`
+	}
 
-	if password == serverPassword {
+	if err := c.ShouldBindJSON(&loginData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if loginData.Password == serverPassword {
 		session := sessions.Default(c)
+		sessionID := sessionID
 		session.Set("authenticated", true)
 		session.Set("session_id", sessionID)
 		session.Save()
-		c.Redirect(http.StatusFound, "/tasks")
+		c.JSON(http.StatusOK, gin.H{"message": "authenticated"})
+		return
 	} else {
-		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Incorrect password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "incorrect password"})
+		return
 	}
 }
 
@@ -146,8 +149,9 @@ func logout(c *gin.Context) {
 }
 
 func getTasks(db *sql.DB, c *gin.Context) {
+	fmt.Print("\n", isAuthenticated(c))
 	if !isAuthenticated(c) {
-		c.Redirect(http.StatusFound, "/login")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authorized"})
 		return
 	}
 
@@ -162,18 +166,24 @@ func getTasks(db *sql.DB, c *gin.Context) {
 	if tasks == nil {
 		tasks = []Task{}
 	}
-	c.JSON(http.StatusOK, tasks)
+	c.JSON(http.StatusOK, gin.H{
+		"auth":  isAuthenticated(c), // Aquí puedes agregar el valor que necesitas para "auth"
+		"tasks": tasks,              // Las tareas que has obtenido de la base de datos
+	})
 }
 
 func createTask(db *sql.DB, c *gin.Context) {
+	// Verificar si el usuario está autenticado usando un middleware.
 	if !isAuthenticated(c) {
 		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 
+	// Estructura para almacenar los datos de la tarea recibida
 	var newTask Task
 	// Intentar enlazar el JSON recibido con la estructura Task
 	if err := c.ShouldBindJSON(&newTask); err != nil {
+		// Si hay un error al enlazar los datos, respondemos con un mensaje adecuado
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -181,11 +191,12 @@ func createTask(db *sql.DB, c *gin.Context) {
 	// Cargar las tareas existentes desde la base de datos
 	tasks, err := loadTasks(db)
 	if err != nil {
+		// Si hay un error al cargar las tareas, respondemos con un mensaje adecuado
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Validar que no exista una tarea con el mismo título
+	// Validar que el título y la descripción no estén vacíos y tengan un tamaño adecuado
 	if newTask.Title == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "The title cannot be empty"})
 		return
@@ -208,7 +219,7 @@ func createTask(db *sql.DB, c *gin.Context) {
 		}
 	}
 
-	// Calcular un ID único basado en el máximo existente
+	// Calcular un ID único basado en el máximo existente, aunque usar un auto-incremento en la base de datos sería más eficiente.
 	maxID := 0
 	for _, t := range tasks {
 		if t.ID > maxID {
@@ -217,16 +228,18 @@ func createTask(db *sql.DB, c *gin.Context) {
 	}
 	newTask.ID = maxID + 1
 	newTask.Completed = false
+
+	// Agregar la nueva tarea a la lista de tareas
 	tasks = append(tasks, newTask)
 
-	// Guardar las tareas actualizadas
+	// Guardar las tareas actualizadas en la base de datos
 	if err := saveTasks(db, tasks); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Responder con un mensaje de éxito
-	c.JSON(http.StatusCreated, gin.H{"message": "Task created"})
+	// Responder con un mensaje de éxito y los datos de la nueva tarea
+	c.JSON(http.StatusOK, newTask)
 }
 
 // Actualiza una tarea por ID
@@ -347,14 +360,6 @@ func deleteTask(db *sql.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
 }
 
-func tasksPage(c *gin.Context) {
-	if !isAuthenticated(c) {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
-	c.HTML(http.StatusOK, "tasks.html", nil)
-}
-
 func main() {
 
 	var err error
@@ -383,19 +388,23 @@ func main() {
 
 	sessionID = generateSessionID()
 
+	r := gin.Default()
 	store := cookie.NewStore([]byte("secret"))
 
-	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:8080"},                   // Permitir solicitudes solo desde el frontend
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},            // Métodos permitidos
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // Encabezados permitidos
+		AllowCredentials: true,                                                // Permitir credenciales como cookies
+	})) // Habilitar CORS
 	r.Use(sessions.Sessions("my_session", store))
 
 	r.LoadHTMLGlob("templates/*")
-
-	r.GET("/", homePage)
-	r.GET("/login", loginPage)
 	r.POST("/login", loginPost)
+	r.GET("/auth", func(ctx *gin.Context) {
+		isAuthenticated(ctx)
+	})
 	r.GET("/logout", logout)
-
-	r.GET("/tasks", tasksPage)
 	r.GET("/api/tasks", func(ctx *gin.Context) {
 		getTasks(db, ctx)
 	})
@@ -411,7 +420,7 @@ func main() {
 
 	r.Static("/static", "./static")
 
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(":8081"); err != nil {
 		fmt.Println(err)
 	}
 }
