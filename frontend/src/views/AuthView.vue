@@ -5,18 +5,18 @@
       <form @submit.prevent="handleLogin">
         <div class="mb-6">
           <input
-            placeholder="Password"
-            type="password"
-            id="password"
-            v-model="password"
-            required
-            class="mt-2 p-2 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500"
+              placeholder="Password"
+              type="password"
+              id="password"
+              v-model="password"
+              required
+              class="mt-2 p-2 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500"
           />
         </div>
 
         <button
-          type="submit"
-          class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-blue-700 dark:hover:bg-blue-600"
+            type="submit"
+            class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-blue-700 dark:hover:bg-blue-600"
         >
           Login
         </button>
@@ -26,15 +26,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
 
 const password = ref('')
 const router = useRouter()
 
-function handleLogin() {
-  console.log('Password:', password.value)
-  router.push('/tasks')
+async function handleLogin<T>(): Promise<T> {
+  const pwd = {
+    "password": password.value
+  }
+  try {
+    const response = await fetch('http://localhost:8081/api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: "include",
+      body: JSON.stringify(pwd)
+    })
+
+    if (!response.ok) {
+      console.error(`Error loggin: ${response.status}`)
+    }
+
+    await router.push("/tasks")
+    return await response.json()
+  } catch (e) {
+    throw new Error('Error: ${e}')
+  }
 }
 </script>
 

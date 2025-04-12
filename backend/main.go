@@ -43,15 +43,18 @@ func generateSessionID() string {
 	return hex.EncodeToString(randomBytes)
 }
 
-func isAuthenticated(c *gin.Context) bool {
+func isAuthenticated(c *gin.Context) {
 	session := sessions.Default(c)
 	authenticated := session.Get("authenticated")
 	savedSessionID := session.Get("session_id")
 
 	if authenticated != nil && authenticated.(bool) && savedSessionID == sessionID {
-		return true
+		c.JSON(200, gin.H{"auth": "true"})
+		return
+	} else {
+		c.JSON(401, gin.H{"auth": "false"})
+		return
 	}
-	return false
 }
 
 func loadTasks(db *sql.DB) ([]Task, error) {
@@ -117,7 +120,7 @@ func saveTasks(db *sql.DB, tasks []Task) error {
 	return nil
 }
 
-func loginPost(c *gin.Context) {
+func loginHandler(c *gin.Context) {
 	var loginData struct {
 		Password string `json:"password"`
 	}
@@ -132,7 +135,11 @@ func loginPost(c *gin.Context) {
 		sessionID := sessionID
 		session.Set("authenticated", true)
 		session.Set("session_id", sessionID)
-		session.Save()
+		err := session.Save()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error saving cookie"})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{"message": "authenticated"})
 		return
 	} else {
@@ -141,19 +148,14 @@ func loginPost(c *gin.Context) {
 	}
 }
 
-func logout(c *gin.Context) {
+func logoutHandler(c *gin.Context) {
 	session := sessions.Default(c)
-	session.Clear()
+	session.Clear() // Borra todos los datos guardados
 	session.Save()
-	c.Redirect(http.StatusFound, "/login")
 }
 
 func getTasks(db *sql.DB, c *gin.Context) {
-	fmt.Print("\n", isAuthenticated(c))
-	if !isAuthenticated(c) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authorized"})
-		return
-	}
+	session := sessions.Default(c)
 
 	// Obtener las tareas desde la base de datos
 	tasks, err := loadTasks(db)
@@ -167,17 +169,13 @@ func getTasks(db *sql.DB, c *gin.Context) {
 		tasks = []Task{}
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"auth":  isAuthenticated(c), // Aquí puedes agregar el valor que necesitas para "auth"
-		"tasks": tasks,              // Las tareas que has obtenido de la base de datos
+		"auth":  session.Get("authenticated"), // Aquí puedes agregar el valor que necesitas para "auth"
+		"tasks": tasks,                        // Las tareas que has obtenido de la base de datos
 	})
 }
 
 func createTask(db *sql.DB, c *gin.Context) {
 	// Verificar si el usuario está autenticado usando un middleware.
-	if !isAuthenticated(c) {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
 
 	// Estructura para almacenar los datos de la tarea recibida
 	var newTask Task
@@ -244,11 +242,6 @@ func createTask(db *sql.DB, c *gin.Context) {
 
 // Actualiza una tarea por ID
 func updateTask(db *sql.DB, c *gin.Context) {
-	if !isAuthenticated(c) {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
-
 	id := c.Param("id")
 	taskID, err := strconv.Atoi(id)
 	if err != nil {
@@ -313,10 +306,6 @@ func updateTask(db *sql.DB, c *gin.Context) {
 }
 
 func deleteTask(db *sql.DB, c *gin.Context) {
-	if !isAuthenticated(c) {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
 
 	// Obtener el ID de la tarea desde la URL
 	id := c.Param("id")
@@ -399,12 +388,11 @@ func main() {
 	})) // Habilitar CORS
 	r.Use(sessions.Sessions("my_session", store))
 
-	r.LoadHTMLGlob("templates/*")
-	r.POST("/login", loginPost)
-	r.GET("/auth", func(ctx *gin.Context) {
+	r.POST("/api/login", loginHandler)
+	r.GET("/api/auth", func(ctx *gin.Context) {
 		isAuthenticated(ctx)
 	})
-	r.GET("/logout", logout)
+	r.GET("/api/logout", logoutHandler)
 	r.GET("/api/tasks", func(ctx *gin.Context) {
 		getTasks(db, ctx)
 	})
