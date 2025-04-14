@@ -395,7 +395,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}
 
-	router.Use(cors.New(config))
+	r.Use(cors.New(config))
 	r.Use(sessions.Sessions("my_session", store))
 
 	r.POST("/api/login", loginHandler)
