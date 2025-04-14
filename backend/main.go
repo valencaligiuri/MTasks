@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -381,12 +382,20 @@ func main() {
 	r := gin.Default()
 	store := cookie.NewStore([]byte("secret"))
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080"},                   // Permitir solicitudes solo desde el frontend
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},            // Métodos permitidos
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // Encabezados permitidos
-		AllowCredentials: true,                                                // Permitir credenciales como cookies
-	})) // Habilitar CORS
+	config := cors.Config{
+		AllowOriginFunc: func(origin string) bool {
+			// Permitimos orígenes locales: 192.168.x.x, 10.x.x.x, localhost
+			return strings.HasPrefix(origin, "http://192.168.") ||
+				strings.HasPrefix(origin, "http://10.") ||
+				strings.HasPrefix(origin, "http://localhost")
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}
+
+	router.Use(cors.New(config))
 	r.Use(sessions.Sessions("my_session", store))
 
 	r.POST("/api/login", loginHandler)
