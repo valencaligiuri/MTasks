@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+  <div class="min-h-screen flex items-center justify-center">
     <div class="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <h2 class="text-2xl font-bold text-left mb-6 text-gray-800 dark:text-white">Auth</h2>
+      <h2 class="text-2xl font-bold text-left mb-6">Auth</h2>
       <form @submit.prevent="handleLogin">
         <div class="mb-6">
           <input
@@ -21,38 +21,38 @@
           Login
         </button>
       </form>
+      <p class="mt-2 text-sm text-red-500 font-medium" v-if="err">{{err}}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue'
+import {capitalize, ref} from 'vue'
 import {useRouter} from 'vue-router'
 
 const password = ref('')
+const err = ref('')
 const router = useRouter()
 
-async function handleLogin<T>(): Promise<T> {
+function handleLogin(){
   const pwd = {
     "password": password.value
   }
-  try {
-    const response = await fetch('http://localhost:8081/api/login', {
+
+  fetch('http://localhost:8081/api/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       credentials: "include",
       body: JSON.stringify(pwd)
-    })
+    }).then(async res => {
+      const data = await res.json()
 
-    if (!response.ok) {
-      console.error(`Error loggin: ${response.status}`)
-    }
-
-    await router.push("/tasks")
-    return await response.json()
-  } catch (e) {
-    throw new Error('Error: ${e}')
-  }
+      if (!res.ok) {
+        err.value = capitalize(data.error);
+      } else {
+        await router.push('/tasks')
+      }
+    }).catch(err => console.log(err))
 }
 </script>
 
