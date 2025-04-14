@@ -1,59 +1,76 @@
 # MTasks
 
-MTasks is a web application designed to help you manage your tasks efficiently.
+MTasks is a web application designed to help you efficiently manage your tasks.
 
 ## Features
 
-- **Create, Read, Update, and Delete (CRUD) Tasks:** Easily manage your tasks with full CRUD functionality.
-- **Prioritization and Categorization:** Organize tasks based on priority and categories.
+- **Create, Read, Update, and Delete (CRUD) Tasks:** Manage your tasks with ease.
+- **Dark/Light Theme:** Toggle between light and dark themes for a personalized experience.
 - **Progress Tracking:** Monitor the completion status of your tasks.
 - **User-Friendly Interface:** Enjoy a simple and intuitive user experience.
-- **Dark/Light Theme:** Toggle between light and dark themes.
+- **Authentication:** Secure access to your tasks with password-protected login.
 
 ## Technologies Used
 
-- **Frontend:** HTML, CSS, JavaScript
-- **Backend:** Go
-- **Database:** (Specify your database here, e.g., SQLite, PostgreSQL)
+- **Frontend:** Vue 3, TypeScript, TailwindCSS, Vite
+- **Backend:** Go (Gin Framework)
+- **Database:** SQLite
 
 ## Installation
 
-1.  Clone the repository:
+1. Clone the repository:
 
     ```bash
     git clone https://github.com/valencaligiuri/MTasks.git
     ```
-2.  Navigate to the project directory:
+
+2. Navigate to the project directory:
 
     ```bash
     cd MTasks
     ```
-3.  Install backend dependencies:
+
+3. Install backend dependencies:
 
     ```bash
     go mod tidy
     ```
 
-4. Configure the database:
-    - Set up your database and update the connection details in the backend configuration.
+4. Navigate to the frontend directory and install dependencies:
+
+    ```bash
+    cd frontend
+    npm install
+    ```
+
+5. Configure the database:
+    - The backend uses SQLite. The database file (`tasks.db`) will be created automatically when the server starts.
 
 ## Usage
 
-1.  Start the backend server:
+1. Start the backend server:
 
     ```bash
     go run main.go
     ```
 
-2.  Open your web browser and navigate to `http://localhost:3000` (or the appropriate port).
+    - You will be prompted to set a password for the server.
+
+2. Start the frontend development server:
+
+    ```bash
+    npm run dev
+    ```
+
+3. Open your web browser and navigate to `http://localhost:8080`.
 
 ## Contributing
 
-Contributions are welcome!  Fork the repository and submit a pull request with your changes.  Please follow these guidelines:
+Contributions are welcome! Fork the repository and submit a pull request with your changes. Please follow these guidelines:
 
--   Ensure your code adheres to the project's coding standards.
--   Write clear and concise commit messages.
--   Test your changes thoroughly.
+- Ensure your code adheres to the project's coding standards.
+- Write clear and concise commit messages.
+- Test your changes thoroughly.
 
 ## License
 
