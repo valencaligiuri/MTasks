@@ -21,7 +21,7 @@
           Login
         </button>
       </form>
-      <p class="mt-2 text-sm text-red-500 font-medium" v-if="err">{{err}}</p>
+      <p class="mt-2 text-sm text-red-500 font-medium" v-if="err">{{ err }}</p>
     </div>
   </div>
 </template>
@@ -34,25 +34,28 @@ const password = ref('')
 const err = ref('')
 const router = useRouter()
 
-function handleLogin(){
+function handleLogin() {
   const pwd = {
     "password": password.value
   }
 
   fetch('http://localhost:8081/api/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      credentials: "include",
-      body: JSON.stringify(pwd)
-    }).then(async res => {
-      const data = await res.json()
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    credentials: "include",
+    body: JSON.stringify(pwd)
+  }).then(async res => {
+    const data = await res.json()
 
-      if (!res.ok) {
-        err.value = capitalize(data.error);
-      } else {
-        await router.push('/tasks')
-      }
-    }).catch(err => console.log(err))
+    if (!res.ok) {
+      err.value = capitalize(data.error);
+    } else {
+      await router.push('/tasks')
+    }
+  }).catch(e => {
+    console.error(e)
+    err.value = "failed connecting to server.."
+  })
 }
 </script>
 

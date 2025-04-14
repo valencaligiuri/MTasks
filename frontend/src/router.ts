@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
-import AuthView from './views/AuthView.vue'
+import LoginView from './views/LoginView.vue'
 import TasksView from './views/TasksView.vue'
 
 const routes: Array<RouteRecordRaw> = [
-  { path: '/', redirect: '/auth' },
+  { path: '/', redirect: '/login' },
   {
-    path: '/auth',
-    name: 'auth',
-    component: AuthView,
+    path: '/login',
+    name: 'login',
+    component: LoginView,
   },
   {
     path: '/tasks',

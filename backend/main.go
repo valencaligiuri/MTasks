@@ -159,6 +159,7 @@ func getTasks(db *sql.DB, c *gin.Context) {
 
 	// Obtener las tareas desde la base de datos
 	tasks, err := loadTasks(db)
+	print(tasks)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
