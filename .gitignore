@@ -15,7 +15,7 @@
 *.swo
 
 # Archivos de bases de datos locales
-/tasks.db
+/backend/tasks.db
 
 # Archivos de configuración específicos del sistema
 *.env
