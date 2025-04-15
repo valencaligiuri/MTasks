@@ -39,7 +39,7 @@ function handleLogin() {
     "password": password.value
   }
 
-  fetch('http://localhost:8081/api/login', {
+  fetch(`http://${window.location.hostname}:8081/api/login`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     credentials: "include",

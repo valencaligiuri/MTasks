@@ -6,7 +6,7 @@ const router = useRouter();
 import {ArrowLeftEndOnRectangleIcon} from "@heroicons/vue/24/solid";
 
 function logout() {
-  fetch('http://localhost:8081/api/logout', {
+  fetch(`http://${window.location.hostname}:8081/api/logout`, {
     method: 'GET',
     credentials: 'include',
   }).then(async res => {

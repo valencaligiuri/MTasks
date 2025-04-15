@@ -108,17 +108,25 @@
         v-if="showViewModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
     >
-      <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md text-center w-full max-w-md">
-        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">View Task</h2>
-        <p class="text-lg text-left font-semibold" :class="{ 'line-through text-gray-500': task.completed }">
-          {{ capitalizeSentence(task.title) }}
-        </p>
-        <p class="text-sm text-left text-gray-600 dark:text-gray-300 mt-2">
-          {{ capitalizeSentence(task.description) }}
-        </p>
+      <div
+          class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md text-center w-full max-w-md min-h-[300px] flex flex-col justify-between">
+        <div>
+          <p
+              class="text-lg text-left font-semibold border-b border-gray-300 dark:border-gray-700 pb-2"
+              :class="{ 'line-through text-gray-500': task.completed }"
+          >
+            {{ capitalizeSentence(task.title) }}
+          </p>
+          <p class="text-sm text-left text-gray-600 dark:text-gray-300 mt-2">
+            {{ capitalizeSentence(task.description) }}
+          </p>
+        </div>
 
-        <div class="mt-4">
-          <button @click="closeViewModal" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm">
+        <div class="mt-6">
+          <button
+              @click="closeViewModal"
+              class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
+          >
             Close
           </button>
         </div>
@@ -129,11 +137,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { CheckIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/vue/24/solid'
-import { useTasks } from "../composables/useTasks.ts";
+import {ref} from 'vue'
+import {CheckIcon, PencilIcon, TrashIcon, EyeIcon} from '@heroicons/vue/24/solid'
+import {useTasks} from "../composables/useTasks.ts";
 
-let { fetchTasks } = useTasks();
+let {fetchTasks} = useTasks();
 
 const props = defineProps<{
   task: {
@@ -152,13 +160,13 @@ const emit = defineEmits<{
 const showCompletionModal = ref(false)
 const showEditModal = ref(false)
 const showViewModal = ref(false) // Nuevo: Modal de vista previa
-const editedTask = ref({ ...props.task })
+const editedTask = ref({...props.task})
 const err = ref('')
 
 const markAsDone = async () => {
-  fetch(`http://localhost:8081/api/tasks/${props.task.id}`, {
+  fetch(`http://${window.location.hostname}:8081/api/tasks/${props.task.id}`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     credentials: 'include',
   }).then(res => {
 
@@ -176,7 +184,7 @@ const closeCompletionModal = () => {
 }
 
 const openEditModal = () => {
-  editedTask.value = { ...props.task }
+  editedTask.value = {...props.task}
   showEditModal.value = true
 }
 
@@ -185,9 +193,9 @@ const closeEditModal = () => {
 }
 
 const updateTask = () => {
-  fetch("http://localhost:8081/api/tasks/" + props.task.id, {
+  fetch(`http://${window.location.hostname}:8081/api/tasks/` + props.task.id, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     credentials: 'include',
     body: JSON.stringify(editedTask.value),
   }).then(async res => {
@@ -206,9 +214,9 @@ const updateTask = () => {
 }
 
 const deleteTask = () => {
-  fetch(`http://localhost:8081/api/tasks/${props.task.id}`, {
+  fetch(`http://${window.location.hostname}:8081/api/tasks/${props.task.id}`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     credentials: 'include'
   }).then(async res => {
     fetchTasks()

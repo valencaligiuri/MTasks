@@ -33,7 +33,7 @@ function applyTheme() {
 }
 
 function authHandler() {
-  fetch('http://localhost:8081/api/auth', {
+  fetch(`http://${window.location.hostname}:8081/api/auth`, {
     method: 'GET',
     credentials: 'include',
   }).then(async res => {

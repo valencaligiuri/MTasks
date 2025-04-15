@@ -3,7 +3,7 @@ import {ref} from "vue";
 const tasks = ref([]);
 
 function fetchTasks(){
-    fetch("http://localhost:8081/api/tasks", {
+    fetch(`http://${window.location.hostname}:8081/api/tasks`, {
         method: "GET",
         headers: {'Content-Type': 'application/json'},
         credentials: "include"

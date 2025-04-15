@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -152,7 +151,11 @@ func loginHandler(c *gin.Context) {
 func logoutHandler(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Clear() // Borra todos los datos guardados
-	session.Save()
+	err := session.Save()
+	if err != nil {
+		print(err)
+	}
+	print("logoutted")
 }
 
 func getTasks(db *sql.DB, c *gin.Context) {
@@ -382,20 +385,23 @@ func main() {
 	r := gin.Default()
 	store := cookie.NewStore([]byte("secret"))
 
-	config := cors.Config{
-		AllowOriginFunc: func(origin string) bool {
-			// Permitimos orígenes locales: 192.168.x.x, 10.x.x.x, localhost
-			return strings.HasPrefix(origin, "http://192.168.") ||
-				strings.HasPrefix(origin, "http://10.") ||
-				strings.HasPrefix(origin, "http://localhost")
+	store.Options(sessions.Options{
+		Path:     "/",
+		MaxAge:   3600 * 8,             // 8 horas
+		SameSite: http.SameSiteLaxMode, // 👈 Cambialo a None si necesitás
+		Secure:   false,                // true si estás usando HTTPS
+	})
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://192.168.1.49:8080",
+			"http://localhost:8080",
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
-	}
-
-	r.Use(cors.New(config))
+	}))
 	r.Use(sessions.Sessions("my_session", store))
 
 	r.POST("/api/login", loginHandler)
@@ -418,7 +424,7 @@ func main() {
 
 	r.Static("/static", "./static")
 
-	if err := r.Run(":8081"); err != nil {
+	if err := r.Run("0.0.0.0:8081"); err != nil {
 		fmt.Println(err)
 	}
 }

@@ -132,7 +132,7 @@ function createTask() {
   if (!newTaskTitle.value.trim()) return;
 
 
-  fetch("http://localhost:8081/api/tasks", {
+  fetch(`http://${window.location.hostname}:8081/api/tasks`, {
     method: "POST",
     headers: {'Content-Type': 'application/json'},
     credentials: 'include',
