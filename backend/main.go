@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -355,18 +356,41 @@ func deleteTask(db *sql.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
 }
 
-func getLocalIP() string {
+func getPrivateIP() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return "localhost"
 	}
 
 	for _, addr := range addrs {
-		// chequea que sea una dirección IP válida
 		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
-			// evita la IP IPv6 o no válida
-			if ip4 := ipNet.IP.To4(); ip4 != nil {
-				return ip4.String()
+			ip := ipNet.IP.To4()
+			if ip == nil {
+				continue // ignorar IPv6
+			}
+
+			ipStr := ip.String()
+
+			// Filtrar solo IPs privadas típicas
+			if strings.HasPrefix(ipStr, "192.168.") ||
+				strings.HasPrefix(ipStr, "10.") ||
+				strings.HasPrefix(ipStr, "172.16.") ||
+				strings.HasPrefix(ipStr, "172.17.") ||
+				strings.HasPrefix(ipStr, "172.18.") ||
+				strings.HasPrefix(ipStr, "172.19.") ||
+				strings.HasPrefix(ipStr, "172.20.") ||
+				strings.HasPrefix(ipStr, "172.21.") ||
+				strings.HasPrefix(ipStr, "172.22.") ||
+				strings.HasPrefix(ipStr, "172.23.") ||
+				strings.HasPrefix(ipStr, "172.24.") ||
+				strings.HasPrefix(ipStr, "172.25.") ||
+				strings.HasPrefix(ipStr, "172.26.") ||
+				strings.HasPrefix(ipStr, "172.27.") ||
+				strings.HasPrefix(ipStr, "172.28.") ||
+				strings.HasPrefix(ipStr, "172.29.") ||
+				strings.HasPrefix(ipStr, "172.30.") ||
+				strings.HasPrefix(ipStr, "172.31.") {
+				return ipStr
 			}
 		}
 	}
@@ -412,9 +436,11 @@ func main() {
 		Secure:   false,                // true si estás usando HTTPS
 	})
 
+	print(getPrivateIP())
+
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://" + getLocalIP() + ":8080",
+			"http://" + getPrivateIP() + ":8080",
 			"http://localhost:8080",
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
